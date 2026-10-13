@@ -8,6 +8,7 @@
 - [x] Basic CPU regression tests for register, memory, stack and branch behavior.
 - [x] Add ALU arithmetic/logical regression checks for overflow, half-carry and compare semantics.
 - [x] Add conditional control-flow regression checks for CALL/RET and not-taken CALL.
+- [x] Add conditional JP and RET taken/not-taken regression cases.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
 - [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
 - [x] Add conditional JP, CALL and RET instruction families with taken/not-taken cycle counts.
