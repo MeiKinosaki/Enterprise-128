@@ -188,6 +188,27 @@ std::uint32_t Z80::step() {
       case 0xC3: pc = fetch16(); used = 10; break;
       case 0xC9: pc = pop(); used = 10; break; // RET
       case 0xCD: { const auto addr = fetch16(); push(pc); pc = addr; used = 17; break; } // CALL
+      case 0xC0: case 0xC8: case 0xD0: case 0xD8:
+      case 0xE0: case 0xE8: case 0xF0: case 0xF8: { // RET cc
+        const unsigned cc = (op >> 3) & 7;
+        if (condition(cc)) { pc = pop(); used = 11; }
+        else used = 5;
+        break;
+      }
+      case 0xC2: case 0xCA: case 0xD2: case 0xDA:
+      case 0xE2: case 0xEA: case 0xF2: case 0xFA: { // JP cc,nn
+        const auto address = fetch16();
+        if (condition((op >> 3) & 7)) pc = address;
+        used = 10;
+        break;
+      }
+      case 0xC4: case 0xCC: case 0xD4: case 0xDC:
+      case 0xE4: case 0xEC: case 0xF4: case 0xFC: { // CALL cc,nn
+        const auto address = fetch16();
+        if (condition((op >> 3) & 7)) { push(pc); pc = address; used = 17; }
+        else used = 10;
+        break;
+      }
       case 0xC6: case 0xCE: case 0xD6: case 0xDE: case 0xE6: case 0xEE: case 0xF6: case 0xFE: {
         const std::uint8_t value = fetch8();
         if (op == 0xC6 || op == 0xCE) { const unsigned carry = (op == 0xCE && (f & C)) ? 1 : 0; const unsigned sum = a + value + carry; const auto result = static_cast<std::uint8_t>(sum); f = static_cast<std::uint8_t>((result & S) | (result == 0 ? Z : 0) | (((a ^ value ^ result) & 0x10) ? H : 0) | ((~(a ^ value) & (a ^ result) & 0x80) ? PV : 0) | (sum > 255 ? C : 0)); a = result; }
