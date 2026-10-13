@@ -182,6 +182,27 @@ static void accumulatorRotateComplementAndCarryFlags() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void blockCopyInstructions() {
+  Z80 cpu;
+  cpu.reset();
+  // LD HL,2000h; LD DE,2100h; LD BC,0002h; LDIR; HALT
+  const std::uint8_t program[] = {
+      0x21, 0x00, 0x20, 0x11, 0x00, 0x21, 0x01, 0x02, 0x00,
+      0xED, 0xB0, 0x76};
+  cpu.load(0, program, sizeof(program));
+  cpu.memory[0x2000] = 0x41;
+  cpu.memory[0x2001] = 0x42;
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 21 && cpu.pc == 9);
+  assert(cpu.memory[0x2100] == 0x41 && cpu.memory[0x2101] == 0x42);
+  assert(cpu.h == 0x20 && cpu.l == 0x02 && cpu.d == 0x21 && cpu.e == 0x02);
+  assert(cpu.b == 0 && cpu.c == 0 && (cpu.f & Z80::FlagPV) == 0);
+  assert(cpu.step() == 16 && cpu.pc == 11);
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -207,6 +228,7 @@ int main() {
   extendedSixteenBitArithmetic();
   sixteenBitTransfersAndExchanges();
   accumulatorRotateComplementAndCarryFlags();
+  blockCopyInstructions();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
