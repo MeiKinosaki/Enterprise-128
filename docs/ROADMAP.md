@@ -28,7 +28,9 @@
 - [x] Update host executable to exercise the integrated facade.
 - [x] Add configurable Z80 read/write bus callbacks and route instruction fetches, operands, stack, and data accesses through the machine memory bus.
 - [x] Load test programs into mapped machine RAM.
-- [ ] Verify CPU bus integration in a successful CI run and add exhaustive boundary/mapping tests.
+- [x] Add regression coverage that instruction fetch follows the selected RAM bank.
+- [x] Add regression coverage for CALL/RET stack accesses through the mapped bus.
+- [ ] Verify these tests in a successful CI run and expand boundary/mapping coverage.
 - [ ] Add memory-mapped or port-mapped I/O only after verifying Enterprise hardware behavior.
 - [ ] Add deterministic frame/audio stepping and machine-level integration tests.
 
@@ -38,4 +40,4 @@
 - [ ] Package and validate default.xex in a suitable test environment.
 
 ## Accuracy and status
-The CPU remains a partial Z80 prototype, not cycle-accurate. The bank-window memory model is generic, not verified Enterprise hardware mapping. NICK, DAVE, input and tape remain basic prototypes. The Emulator facade groups these components but does not yet connect CPU bus accesses to the machine memory. CI configuration is present; the latest successful build/test run has not been confirmed in this work. No Xbox 360 XEX has been produced or tested.
+The CPU remains a partial Z80 prototype, not cycle-accurate. The bank-window memory model is generic, not verified Enterprise hardware mapping. NICK, DAVE, input and tape remain basic prototypes. The Emulator facade routes CPU instruction fetches and data/stack accesses through callbacks into generic banked RAM. CI configuration is present; the latest successful build/test run has not been confirmed in this work. No Xbox 360 XEX has been produced or tested.
