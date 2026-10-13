@@ -11,10 +11,12 @@
 - [x] Add conditional JP and RET taken/not-taken regression cases.
 - [x] Add 16-bit ADC/SBC regression cases for signed overflow and borrow/carry.
 - [x] Implement SCF needed to exercise carry-in paths in the arithmetic tests.
+- [x] Add regression coverage for 16-bit transfer/exchange instructions.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
 - [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
 - [x] Add conditional JP, CALL and RET instruction families with taken/not-taken cycle counts.
 - [x] Add ED-prefixed ADC HL,rr and SBC HL,rr instructions with 16-bit result/flag handling.
+- [x] Add JP (HL), EX DE,HL, EX (SP),HL and LD SP,HL instructions.
 - [ ] Finish remaining Z80 instruction families, exact flag/timing semantics, interrupts and I/O.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
