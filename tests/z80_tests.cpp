@@ -39,6 +39,28 @@ static void pairsStackCallAndReturn() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void aluRegisterOperationsAndFlags() {
+  Z80 cpu;
+  cpu.reset();
+  // LD A,7Fh; LD B,01h; ADD A,B; SUB B; CP 7Fh; XOR A
+  const std::uint8_t program[] = {
+      0x3E, 0x7F, 0x06, 0x01, 0x80, 0x90, 0xFE, 0x7F, 0xAF, 0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 7 && cpu.a == 0x7F);
+  assert(cpu.step() == 7 && cpu.b == 0x01);
+  assert(cpu.step() == 4 && cpu.a == 0x80);
+  assert((cpu.f & (Z80::FlagS | Z80::FlagH | Z80::FlagPV)) ==
+         (Z80::FlagS | Z80::FlagH | Z80::FlagPV));
+  assert(cpu.step() == 4 && cpu.a == 0x7F);
+  assert((cpu.f & (Z80::FlagN | Z80::FlagH | Z80::FlagPV)) ==
+         (Z80::FlagN | Z80::FlagH | Z80::FlagPV));
+  assert(cpu.step() == 7 && cpu.a == 0x7F);
+  assert((cpu.f & (Z80::FlagZ | Z80::FlagN)) ==
+         (Z80::FlagZ | Z80::FlagN));
+  assert(cpu.step() == 4 && cpu.a == 0 && (cpu.f & Z80::FlagZ));
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -59,6 +81,7 @@ int main() {
   basicLoadStoreAndFlags();
   pairsStackCallAndReturn();
   branchAndUnsupportedOpcode();
+  aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
 }
