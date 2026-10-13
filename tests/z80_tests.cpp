@@ -110,6 +110,35 @@ static void conditionalJumpAndReturn() {
   assert(retNotTaken.step() == 4 && retNotTaken.halted);
 }
 
+static void extendedSixteenBitArithmetic() {
+  Z80 cpu;
+  cpu.reset();
+  // LD HL,7FFFh; LD BC,0001h; SCF; ADC HL,BC -> 8001h
+  const std::uint8_t program[] = {
+      0x21, 0xFF, 0x7F, 0x01, 0x01, 0x00, 0x37, 0xED, 0x4A, 0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 10 && cpu.h == 0x7F && cpu.l == 0xFF);
+  assert(cpu.step() == 10 && cpu.b == 0 && cpu.c == 1);
+  assert(cpu.step() == 4 && (cpu.f & Z80::FlagC));
+  assert(cpu.step() == 15 && cpu.h == 0x80 && cpu.l == 0x01);
+  assert((cpu.f & (Z80::FlagS | Z80::FlagH | Z80::FlagPV)) ==
+         (Z80::FlagS | Z80::FlagH | Z80::FlagPV));
+  assert(cpu.step() == 4 && cpu.halted);
+
+  Z80 sub;
+  sub.reset();
+  // HL=0000h; BC=0000h; SCF; SBC HL,BC -> FFFFh
+  const std::uint8_t subtract[] = {
+      0x21, 0x00, 0x00, 0x01, 0x00, 0x00, 0x37, 0xED, 0x42, 0x76};
+  sub.load(0, subtract, sizeof(subtract));
+  assert(sub.step() == 10);
+  assert(sub.step() == 10);
+  assert(sub.step() == 4);
+  assert(sub.step() == 15 && sub.h == 0xFF && sub.l == 0xFF);
+  assert((sub.f & (Z80::FlagN | Z80::FlagC | Z80::FlagS)) ==
+         (Z80::FlagN | Z80::FlagC | Z80::FlagS));
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -132,6 +161,7 @@ int main() {
   branchAndUnsupportedOpcode();
   conditionalJumpCallAndReturn();
   conditionalJumpAndReturn();
+  extendedSixteenBitArithmetic();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
