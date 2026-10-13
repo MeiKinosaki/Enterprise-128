@@ -185,6 +185,37 @@ std::uint32_t Z80::step() {
       case 0xAF: a = 0; f = Z | PV; used = 4; break; // XOR A
       case 0xA7: f = static_cast<std::uint8_t>(szp(a) | H); used = 4; break; // AND A
       case 0xB7: f = szp(a); used = 4; break; // OR A
+      case 0xED: { // Extended Z80 opcodes: 16-bit ADC/SBC HL,rr
+        const std::uint8_t ext = fetch8();
+        if ((ext & 0xCF) == 0x4A || (ext & 0xCF) == 0x42) {
+          const unsigned pairIndex = (ext >> 4) & 3;
+          const std::uint16_t lhs = getPair(2);
+          const std::uint16_t rhs = getPair(pairIndex);
+          const unsigned carryIn = (f & C) ? 1u : 0u;
+          const bool subtract = (ext & 0x08) == 0;
+          const std::uint32_t wide = subtract
+              ? static_cast<std::uint32_t>(lhs) - static_cast<std::uint32_t>(rhs) - carryIn
+              : static_cast<std::uint32_t>(lhs) + static_cast<std::uint32_t>(rhs) + carryIn;
+          const std::uint16_t result = static_cast<std::uint16_t>(wide);
+          const bool halfCarry = ((lhs ^ rhs ^ result) & 0x1000) != 0;
+          const bool overflow = subtract
+              ? (((lhs ^ rhs) & (lhs ^ result) & 0x8000) != 0)
+              : (((~(lhs ^ rhs)) & (lhs ^ result) & 0x8000) != 0);
+          const bool carry = subtract
+              ? static_cast<std::uint32_t>(lhs) < static_cast<std::uint32_t>(rhs) + carryIn
+              : wide > 0xFFFFu;
+          f = static_cast<std::uint8_t>((subtract ? N : 0) |
+              ((result & 0x8000) ? S : 0) | (result == 0 ? Z : 0) |
+              (halfCarry ? H : 0) | (overflow ? PV : 0) | (carry ? C : 0));
+          setPair(2, result);
+          used = 15;
+        } else {
+          unsupportedOpcode = ext;
+          halted = true;
+          used = 0;
+        }
+        break;
+      }
       case 0xC3: pc = fetch16(); used = 10; break;
       case 0xC9: pc = pop(); used = 10; break; // RET
       case 0xCD: { const auto addr = fetch16(); push(pc); pc = addr; used = 17; break; } // CALL
