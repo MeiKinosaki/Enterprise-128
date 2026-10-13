@@ -1,32 +1,32 @@
 # Enterprise128-360 roadmap
 
 ## v0.1b — project scaffold
-- [x] Establish a portable C++17 project structure.
-- [x] Add cloud CI build and test entry points.
+- [x] Portable C++17 project and CI entry point.
 
-## v0.2b — CPU and memory prototype (in progress)
-- [x] Add standalone Z80 state and 64 KiB test address space.
-- [x] Add an initial instruction subset including register loads, memory loads/stores, arithmetic/logical operations, branches, stack, CALL/RET and HALT.
-- [x] Add regression tests for a small CPU program, stack/call flow and a DJNZ loop.
-- [x] Add an eight-bank 16 KiB RAM abstraction (128 KiB total) with four CPU-visible windows.
-- [x] Add basic memory mapping tests and wire them into CTest/CI.
-- [x] Connect host smoke executable to CPU and memory prototypes.
-- [ ] Confirm latest GitHub Actions run passes; source commits alone do not confirm compilation.
-- [ ] Complete the documented base Z80 instruction set and all flags/timing semantics.
-- [ ] Implement interrupt handling and I/O port abstraction.
-- [ ] Replace the generic bank-window model with verified Enterprise-specific memory/ROM mapping.
+## v0.2b — CPU and memory prototypes (in progress)
+- [x] Initial Z80 state and instruction subset, including register loads, arithmetic/logical operations, branches, stack, CALL/RET and HALT.
+- [x] CPU regression tests for instruction flow and basic stack/subroutine behavior.
+- [x] 128 KiB RAM prototype split into eight 16 KiB banks, exposed through four 16 KiB windows.
+- [x] Memory tests and host smoke executable integration.
+- [ ] Complete base instruction set, exact flags/timing, interrupts and I/O semantics.
+- [ ] Verify Enterprise-specific memory/ROM mapping against trusted technical references.
 
-## v0.3b — machine subsystems (planned)
-- [ ] ROM/EXOS boot flow and system initialization.
-- [ ] NICK video timing and rendering.
-- [ ] DAVE sound and interrupt/timer behavior.
-- [ ] Keyboard/joystick input abstraction.
-- [ ] Tape/disk image loading and error reporting.
+## v0.3b — subsystem prototypes (interfaces added; emulation incomplete)
+- [x] NICK framebuffer prototype (320x256 indexed pixels, bounds checks).
+- [x] DAVE register-storage prototype.
+- [x] Controller button-state abstraction.
+- [x] In-memory raw-byte tape container.
+- [x] Smoke tests for subsystem interfaces added to CTest/CI.
+- [ ] Implement NICK display modes, palette, timing and interrupts.
+- [ ] Implement DAVE channels, timers, noise and audio sample generation.
+- [ ] Implement the real Enterprise keyboard matrix and joystick port mapping.
+- [ ] Parse actual supported tape/disk formats and add file I/O.
+- [ ] Implement ROM/EXOS boot flow and connect CPU to mapped memory and I/O.
 
-## Xbox 360 delivery (planned)
-- [ ] Select and verify a compatible Xenon toolchain and SDK environment.
+## Xbox 360 delivery (not yet implemented)
+- [ ] Select and validate a Xenon-compatible toolchain and SDK environment.
 - [ ] Implement Xbox 360 graphics, audio, controller and file access backends.
 - [ ] Package and validate default.xex on a suitable test environment.
 
 ## Accuracy and status
-The Z80 implementation is a growing prototype, not a complete or cycle-accurate CPU. The 128 KiB bank-window memory class is a development abstraction, not verified Enterprise hardware mapping. NICK, DAVE, ROM/EXOS, media loading, and Xbox 360 integration are not implemented yet. No successful cloud build or Xbox 360 XEX has been confirmed by these commits.
+The CPU supports only a subset of Z80 opcodes and is not cycle-accurate. The memory model is generic and not a verified Enterprise memory controller. NICK, DAVE, input and tape are only early software prototypes, not hardware-complete emulation. The CI workflow has been configured, but its latest run has not been verified in this work. No Xbox 360 XEX has been produced or tested.
