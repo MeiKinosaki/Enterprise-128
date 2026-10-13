@@ -4,29 +4,36 @@
 - [x] Portable C++17 project and CI entry point.
 
 ## v0.2b — CPU and memory prototypes (in progress)
-- [x] Initial Z80 state and instruction subset, including register loads, arithmetic/logical operations, branches, stack, CALL/RET and HALT.
-- [x] CPU regression tests for instruction flow and basic stack/subroutine behavior.
-- [x] 128 KiB RAM prototype split into eight 16 KiB banks, exposed through four 16 KiB windows.
-- [x] Memory tests and host smoke executable integration.
-- [ ] Complete base instruction set, exact flags/timing, interrupts and I/O semantics.
-- [ ] Verify Enterprise-specific memory/ROM mapping against trusted technical references.
+- [x] Initial Z80 state and instruction subset.
+- [x] Basic CPU regression tests for register, memory, stack and branch behavior.
+- [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
+- [ ] Finish Z80 instruction set, exact flag/timing semantics, interrupts and I/O.
+- [ ] Verify Enterprise-specific memory/ROM mapping.
 
-## v0.3b — subsystem prototypes (interfaces added; emulation incomplete)
-- [x] NICK framebuffer prototype (320x256 indexed pixels, bounds checks).
-- [x] DAVE register-storage prototype.
-- [x] Controller button-state abstraction.
-- [x] In-memory raw-byte tape container.
-- [x] Smoke tests for subsystem interfaces added to CTest/CI.
-- [ ] Implement NICK display modes, palette, timing and interrupts.
-- [ ] Implement DAVE channels, timers, noise and audio sample generation.
-- [ ] Implement the real Enterprise keyboard matrix and joystick port mapping.
-- [ ] Parse actual supported tape/disk formats and add file I/O.
-- [ ] Implement ROM/EXOS boot flow and connect CPU to mapped memory and I/O.
+## v0.3b — subsystem prototypes (in progress)
+- [x] NICK framebuffer API.
+- [x] DAVE register storage API.
+- [x] Controller button state.
+- [x] Raw in-memory tape byte container.
+- [x] Smoke tests for subsystem APIs.
+- [ ] Implement real NICK modes, timing, palette and interrupts.
+- [ ] Implement DAVE channels, timers and audio generation.
+- [ ] Implement Enterprise keyboard matrix and joystick port mapping.
+- [ ] Parse real tape/disk formats and add safe file loading.
+
+## v0.4b — machine integration scaffold (in progress)
+- [x] Add a system-level Emulator facade containing CPU, memory, video, audio, controller and tape components.
+- [x] Add reset, program-load bounds checks and bounded instruction-run helper.
+- [x] Add machine-level regression tests and wire them into CTest.
+- [x] Update host executable to exercise the integrated facade.
+- [ ] Connect Z80 instruction fetch/read/write to the mapped Memory bus (CPU still uses private test RAM).
+- [ ] Add memory-mapped or port-mapped I/O only after verifying Enterprise hardware behavior.
+- [ ] Add deterministic frame/audio stepping and machine-level integration tests.
 
 ## Xbox 360 delivery (not yet implemented)
-- [ ] Select and validate a Xenon-compatible toolchain and SDK environment.
-- [ ] Implement Xbox 360 graphics, audio, controller and file access backends.
-- [ ] Package and validate default.xex on a suitable test environment.
+- [ ] Select and verify a Xenon-compatible toolchain/SDK environment.
+- [ ] Add Xbox 360 graphics, audio, controller and storage backends.
+- [ ] Package and validate default.xex in a suitable test environment.
 
 ## Accuracy and status
-The CPU supports only a subset of Z80 opcodes and is not cycle-accurate. The memory model is generic and not a verified Enterprise memory controller. NICK, DAVE, input and tape are only early software prototypes, not hardware-complete emulation. The CI workflow has been configured, but its latest run has not been verified in this work. No Xbox 360 XEX has been produced or tested.
+The CPU remains a partial Z80 prototype, not cycle-accurate. The bank-window memory model is generic, not verified Enterprise hardware mapping. NICK, DAVE, input and tape remain basic prototypes. The Emulator facade groups these components but does not yet connect CPU bus accesses to the machine memory. CI configuration is present; the latest successful build/test run has not been confirmed in this work. No Xbox 360 XEX has been produced or tested.
