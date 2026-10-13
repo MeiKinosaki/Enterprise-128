@@ -1,6 +1,7 @@
 #include "cpu/z80.h"
 
 #include <algorithm>
+#include <utility>
 
 namespace enterprise128::cpu {
 namespace {
