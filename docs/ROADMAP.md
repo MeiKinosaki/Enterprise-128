@@ -10,6 +10,7 @@
 - [x] Add conditional control-flow regression checks for CALL/RET and not-taken CALL.
 - [x] Add conditional JP and RET taken/not-taken regression cases.
 - [x] Add 16-bit ADC/SBC regression cases for signed overflow and borrow/carry.
+- [x] Implement SCF needed to exercise carry-in paths in the arithmetic tests.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
 - [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
 - [x] Add conditional JP, CALL and RET instruction families with taken/not-taken cycle counts.
