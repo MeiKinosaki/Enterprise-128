@@ -15,6 +15,11 @@ std::uint8_t szp(std::uint8_t v) {
 }
 }
 
+void Z80::setBus(ReadCallback read, WriteCallback write) { busRead_ = std::move(read); busWrite_ = std::move(write); }
+void Z80::clearBus() { busRead_ = {}; busWrite_ = {}; }
+std::uint8_t Z80::read8(std::uint16_t address) const { return busRead_ ? busRead_(address) : memory[address]; }
+void Z80::write8(std::uint16_t address, std::uint8_t value) { if (busWrite_) busWrite_(address, value); else memory[address] = value; }
+
 void Z80::reset() {
   a = f = b = c = d = e = h = l = 0;
   sp = 0xFFFF; pc = 0; halted = false; unsupportedOpcode = 0; cycles = 0;
@@ -29,9 +34,9 @@ void Z80::load(std::uint16_t address, const std::uint8_t* data, std::uint32_t si
 
 std::uint32_t Z80::step() {
   if (halted) return 0;
-  const std::uint8_t op = memory[pc++];
+  const std::uint8_t op = read8(pc++);
   std::uint32_t used = 0;
-  auto fetch8 = [this]() { return memory[pc++]; };
+  auto fetch8 = [this]() { return read8(pc++); };
   auto fetch16 = [&fetch8]() {
     const std::uint16_t lo = fetch8();
     const std::uint16_t hi = fetch8();
@@ -41,14 +46,14 @@ std::uint32_t Z80::step() {
     switch (r & 7) {
       case 0: return b; case 1: return c; case 2: return d; case 3: return e;
       case 4: return h; case 5: return l; case 7: return a;
-      default: return memory[static_cast<std::uint16_t>((h << 8) | l)];
+      default: return read8(static_cast<std::uint16_t>((h << 8) | l));
     }
   };
   auto setR = [this](unsigned r, std::uint8_t v) {
     switch (r & 7) {
       case 0: b = v; break; case 1: c = v; break; case 2: d = v; break; case 3: e = v; break;
       case 4: h = v; break; case 5: l = v; break; case 7: a = v; break;
-      default: memory[static_cast<std::uint16_t>((h << 8) | l)] = v; break;
+      default: write8(static_cast<std::uint16_t>((h << 8) | l), v); break;
     }
   };
   auto getPair = [this](unsigned p) -> std::uint16_t {
@@ -68,12 +73,12 @@ std::uint32_t Z80::step() {
     }
   };
   auto push = [this](std::uint16_t v) {
-    memory[--sp] = static_cast<std::uint8_t>(v >> 8);
-    memory[--sp] = static_cast<std::uint8_t>(v);
+    write8(--sp, static_cast<std::uint8_t>(v >> 8));
+    write8(--sp, static_cast<std::uint8_t>(v));
   };
   auto pop = [this]() {
-    const std::uint16_t lo = memory[sp++];
-    const std::uint16_t hi = memory[sp++];
+    const std::uint16_t lo = read8(sp++);
+    const std::uint16_t hi = read8(sp++);
     return static_cast<std::uint16_t>(lo | (hi << 8));
   };
   auto condition = [this](unsigned cc) {
@@ -125,14 +130,14 @@ std::uint32_t Z80::step() {
   } else {
     switch (op) {
       case 0x00: used = 4; break; // NOP
-      case 0x02: memory[getPair(0)] = a; used = 7; break; // LD (BC),A
-      case 0x0A: a = memory[getPair(0)]; used = 7; break;
-      case 0x12: memory[getPair(1)] = a; used = 7; break;
-      case 0x1A: a = memory[getPair(1)]; used = 7; break;
-      case 0x22: { const auto addr = fetch16(); memory[addr] = l; memory[static_cast<std::uint16_t>(addr + 1)] = h; used = 16; break; }
-      case 0x2A: { const auto addr = fetch16(); l = memory[addr]; h = memory[static_cast<std::uint16_t>(addr + 1)]; used = 16; break; }
-      case 0x32: { const auto addr = fetch16(); memory[addr] = a; used = 13; break; }
-      case 0x3A: { const auto addr = fetch16(); a = memory[addr]; used = 13; break; }
+      case 0x02: write8(getPair(0), a); used = 7; break; // LD (BC),A
+      case 0x0A: a = read8(getPair(0)); used = 7; break;
+      case 0x12: write8(getPair(1), a); used = 7; break;
+      case 0x1A: a = read8(getPair(1)); used = 7; break;
+      case 0x22: { const auto addr = fetch16(); write8(addr, l); write8(static_cast<std::uint16_t>(addr + 1), h); used = 16; break; }
+      case 0x2A: { const auto addr = fetch16(); l = read8(addr); h = read8(static_cast<std::uint16_t>(addr + 1)); used = 16; break; }
+      case 0x32: { const auto addr = fetch16(); write8(addr, a); used = 13; break; }
+      case 0x3A: { const auto addr = fetch16(); a = read8(addr); used = 13; break; }
       case 0x07: { const bool carry = (a & 0x80) != 0; a = static_cast<std::uint8_t>((a << 1) | (carry ? 1 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & (5|0x20)) | (carry ? C : 0)); used = 4; break; } // RLCA
       case 0x0F: { const bool carry = (a & 1) != 0; a = static_cast<std::uint8_t>((a >> 1) | (carry ? 0x80 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & (5|0x20)) | (carry ? C : 0)); used = 4; break; }
       case 0x09: case 0x19: case 0x29: case 0x39: { const auto lhs = getPair(2), rhs = getPair((op >> 4) & 3); const std::uint32_t sum = static_cast<std::uint32_t>(lhs) + rhs; setPair(2, static_cast<std::uint16_t>(sum)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (((lhs ^ rhs ^ sum) & 0x1000) ? H : 0) | (sum > 0xFFFF ? C : 0)); used = 11; break; }
