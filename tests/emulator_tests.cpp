@@ -8,16 +8,21 @@ int main() {
   enterprise128::machine::Emulator emulator;
   emulator.reset();
 
+  // LD A,10h; INC A; LD (4000h),A; HALT
   const std::uint8_t program[] = {0x3E, 0x10, 0x3C, 0x32, 0x00, 0x40, 0x76};
   assert(emulator.loadProgram(0x0000, program, sizeof(program)));
   assert(!emulator.loadProgram(0xFFFF, program, sizeof(program)));
   assert(emulator.runInstructions(20) == 4);
   assert(emulator.cpu().halted);
   assert(emulator.cpu().a == 0x11);
-  assert(emulator.cpu().memory[0x4000] == 0x11);
+  assert(emulator.memory().read(0x4000) == 0x11);
 
-  emulator.memory().write(0x0100, 0xA5);
-  assert(emulator.memory().read(0x0100) == 0xA5);
+  // CPU and machine memory share the same bus after reset.
+  emulator.memory().mapWindow(0, 4);
+  assert(emulator.memory().read(0x0000) == 0);
+  emulator.memory().mapWindow(0, 0);
+  assert(emulator.memory().read(0x0000) == 0x3E);
+
   emulator.video().setPixel(3, 4, 6);
   assert(emulator.video().pixel(3, 4) == 6);
   emulator.audio().writeRegister(2, 0x44);
@@ -31,8 +36,8 @@ int main() {
 
   emulator.reset();
   assert(emulator.cpu().pc == 0 && !emulator.cpu().halted);
-  assert(emulator.memory().read(0x0100) == 0);
+  assert(emulator.memory().read(0x0000) == 0);
   assert(emulator.video().pixel(3, 4) == 0);
   assert(emulator.tape().empty());
-  std::cout << "Integrated machine facade tests passed\n";
+  std::cout << "Integrated machine bus tests passed\n";
 }
