@@ -26,7 +26,9 @@
 - [x] Add reset, program-load bounds checks and bounded instruction-run helper.
 - [x] Add machine-level regression tests and wire them into CTest.
 - [x] Update host executable to exercise the integrated facade.
-- [ ] Connect Z80 instruction fetch/read/write to the mapped Memory bus (CPU still uses private test RAM).
+- [x] Add configurable Z80 read/write bus callbacks and route instruction fetches, operands, stack, and data accesses through the machine memory bus.
+- [x] Load test programs into mapped machine RAM.
+- [ ] Verify CPU bus integration in a successful CI run and add exhaustive boundary/mapping tests.
 - [ ] Add memory-mapped or port-mapped I/O only after verifying Enterprise hardware behavior.
 - [ ] Add deterministic frame/audio stepping and machine-level integration tests.
 
