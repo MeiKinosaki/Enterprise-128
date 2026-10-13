@@ -97,7 +97,7 @@ static void conditionalJumpAndReturn() {
   assert(cpu.step() == 4 && (cpu.f & Z80::FlagZ) == 0);
   assert(cpu.step() == 10 && cpu.pc == 8);
   assert(cpu.step() == 17 && cpu.pc == 12);
-  assert(cpu.step() == 5 && cpu.pc == 11); // RET NZ, condition true
+  assert(cpu.step() == 11 && cpu.pc == 11); // RET NZ, condition true
   assert(cpu.step() == 4 && cpu.halted);
 
   Z80 retNotTaken;
