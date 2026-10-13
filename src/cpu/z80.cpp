@@ -128,6 +128,36 @@ std::uint32_t Z80::step() {
     if (p == 3) { a = static_cast<std::uint8_t>(value >> 8); f = static_cast<std::uint8_t>(value); }
     else setPair(p, value);
     used = 10;
+  } else if (op >= 0x80 && op <= 0xBF) { // ADD/ADC/SUB/SBC/AND/XOR/OR/CP A,r
+    const unsigned operation = (op >> 3) & 7;
+    const std::uint8_t value = getR(op & 7);
+    const std::uint8_t oldA = a;
+    const unsigned carryIn = ((operation == 1 || operation == 3) && (f & C)) ? 1u : 0u;
+    if (operation <= 3 || operation == 7) {
+      const bool subtract = operation >= 2;
+      const unsigned wide = subtract
+          ? static_cast<unsigned>(oldA) - static_cast<unsigned>(value) - carryIn
+          : static_cast<unsigned>(oldA) + static_cast<unsigned>(value) + carryIn;
+      const std::uint8_t result = static_cast<std::uint8_t>(wide);
+      const bool halfCarry = subtract
+          ? ((oldA ^ value ^ result) & 0x10) != 0
+          : ((oldA ^ value ^ result) & 0x10) != 0;
+      const bool overflow = subtract
+          ? (((oldA ^ value) & (oldA ^ result) & 0x80) != 0)
+          : (((~(oldA ^ value)) & (oldA ^ result) & 0x80) != 0);
+      const bool carry = subtract
+          ? static_cast<unsigned>(oldA) < static_cast<unsigned>(value) + carryIn
+          : wide > 0xFFu;
+      f = static_cast<std::uint8_t>((subtract ? N : 0) | (result & S) |
+          (result == 0 ? Z : 0) | (halfCarry ? H : 0) |
+          (overflow ? PV : 0) | (carry ? C : 0));
+      if (operation != 7) a = result; // CP updates flags only.
+    } else {
+      if (operation == 4) { a = static_cast<std::uint8_t>(a & value); f = static_cast<std::uint8_t>(szp(a) | H); }
+      else if (operation == 5) { a = static_cast<std::uint8_t>(a ^ value); f = szp(a); }
+      else { a = static_cast<std::uint8_t>(a | value); f = szp(a); }
+    }
+    used = (op & 7) == 6 ? 7 : 4;
   } else {
     switch (op) {
       case 0x00: used = 4; break; // NOP
@@ -139,7 +169,7 @@ std::uint32_t Z80::step() {
       case 0x2A: { const auto addr = fetch16(); l = read8(addr); h = read8(static_cast<std::uint16_t>(addr + 1)); used = 16; break; }
       case 0x32: { const auto addr = fetch16(); write8(addr, a); used = 13; break; }
       case 0x3A: { const auto addr = fetch16(); a = read8(addr); used = 13; break; }
-      case 0x07: { const bool carry = (a & 0x80) != 0; a = static_cast<std::uint8_t>((a << 1) | (carry ? 1 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & (5|0x20)) | (carry ? C : 0)); used = 4; break; } // RLCA
+      case 0x07: { const bool carry = (a & 0x80) != 0; a = static_cast<std::uint8_t>((a << 1) | (carry ? 1 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | (carry ? C : 0)); used = 4; break; } // RLCA
       case 0x0F: { const bool carry = (a & 1) != 0; a = static_cast<std::uint8_t>((a >> 1) | (carry ? 0x80 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & (5|0x20)) | (carry ? C : 0)); used = 4; break; }
       case 0x09: case 0x19: case 0x29: case 0x39: { const auto lhs = getPair(2), rhs = getPair((op >> 4) & 3); const std::uint32_t sum = static_cast<std::uint32_t>(lhs) + rhs; setPair(2, static_cast<std::uint16_t>(sum)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (((lhs ^ rhs ^ sum) & 0x1000) ? H : 0) | (sum > 0xFFFF ? C : 0)); used = 11; break; }
       case 0x10: { const auto displacement = static_cast<std::int8_t>(fetch8()); --b; if (b != 0) { pc = static_cast<std::uint16_t>(pc + displacement); used = 13; } else used = 8; break; } // DJNZ
