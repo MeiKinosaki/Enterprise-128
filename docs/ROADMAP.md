@@ -6,8 +6,10 @@
 ## v0.2b — CPU and memory prototypes (in progress)
 - [x] Initial Z80 state and instruction subset.
 - [x] Basic CPU regression tests for register, memory, stack and branch behavior.
+- [x] Add ALU arithmetic/logical regression checks for overflow, half-carry and compare semantics.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
-- [ ] Finish Z80 instruction set, exact flag/timing semantics, interrupts and I/O.
+- [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
+- [ ] Finish remaining Z80 instruction families, exact flag/timing semantics, interrupts and I/O.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
 ## v0.3b — subsystem prototypes (in progress)
