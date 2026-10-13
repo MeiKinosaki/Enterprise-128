@@ -23,32 +23,20 @@ static void basicLoadStoreAndFlags() {
 static void pairsStackCallAndReturn() {
   Z80 cpu;
   cpu.reset();
-  // LD BC,1234h; PUSH BC; LD BC,0; POP BC; CALL 000Ah; HALT; subroutine: LD A,55h; RET
+  // LD BC,1234h; PUSH BC; LD BC,0; POP BC; CALL 000Ch; HALT; LD A,55h; RET
   const std::uint8_t program[] = {
     0x01, 0x34, 0x12, 0xC5, 0x01, 0x00, 0x00, 0xC1,
-    0xCD, 0x0B, 0x00, 0x76, 0x3E, 0x55, 0xC9
+    0xCD, 0x0C, 0x00, 0x76, 0x3E, 0x55, 0xC9
   };
   cpu.load(0, program, sizeof(program));
   assert(cpu.step() == 10 && cpu.b == 0x12 && cpu.c == 0x34);
   assert(cpu.step() == 11);
   assert(cpu.step() == 10 && cpu.b == 0 && cpu.c == 0);
   assert(cpu.step() == 10 && cpu.b == 0x12 && cpu.c == 0x34);
-  assert(cpu.step() == 17 && cpu.pc == 0x000B);
-  assert(cpu.step() == 4 && cpu.halted);
-  // Reset to run subroutine path directly.
-  cpu.reset();
-  cpu.pc = 0x000C;
-  cpu.memory[0x000C] = 0x3E;
-  cpu.memory[0x000D] = 0x55;
-  cpu.memory[0x000E] = 0xC9;
-  cpu.memory[0x1234] = 0;
+  assert(cpu.step() == 17 && cpu.pc == 0x000C);
   assert(cpu.step() == 7 && cpu.a == 0x55);
-  // RET target is initialized stack memory; deterministic check of stack behavior
-  cpu.memory[0xFFFE] = 0x34;
-  cpu.memory[0xFFFF] = 0x12;
-  cpu.sp = 0xFFFE;
-  cpu.pc = 0x000E;
-  assert(cpu.step() == 10 && cpu.pc == 0x1234);
+  assert(cpu.step() == 10 && cpu.pc == 0x000B);
+  assert(cpu.step() == 4 && cpu.halted);
 }
 
 static void branchAndUnsupportedOpcode() {
