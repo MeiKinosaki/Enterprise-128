@@ -133,7 +133,7 @@ static void extendedSixteenBitArithmetic() {
   sub.load(0, subtract, sizeof(subtract));
   assert(sub.step() == 10);
   assert(sub.step() == 10);
-  assert(sub.step() == 4);
+  assert(sub.step() == 4 && (sub.f & Z80::FlagC));
   assert(sub.step() == 15 && sub.h == 0xFF && sub.l == 0xFF);
   assert((sub.f & (Z80::FlagN | Z80::FlagC | Z80::FlagS)) ==
          (Z80::FlagN | Z80::FlagC | Z80::FlagS));
