@@ -15,5 +15,7 @@ jobs:
         run: cmake -S . -B build
       - name: Build
         run: cmake --build build --parallel
-      - name: Smoke test
+      - name: Run regression tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Run scaffold
         run: ./build/enterprise128_scaffold
