@@ -139,6 +139,32 @@ static void extendedSixteenBitArithmetic() {
          (Z80::FlagN | Z80::FlagC | Z80::FlagS));
 }
 
+static void sixteenBitTransfersAndExchanges() {
+  Z80 cpu;
+  cpu.reset();
+  // LD HL,1234h; LD DE,ABCDh; EX DE,HL; LD SP,HL; JP (HL)
+  const std::uint8_t program[] = {
+      0x21, 0x34, 0x12, 0x11, 0xCD, 0xAB, 0xEB, 0xF9, 0xE9};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 10 && cpu.h == 0x12 && cpu.l == 0x34);
+  assert(cpu.step() == 10 && cpu.d == 0xAB && cpu.e == 0xCD);
+  assert(cpu.step() == 4 && cpu.h == 0xAB && cpu.l == 0xCD &&
+         cpu.d == 0x12 && cpu.e == 0x34);
+  assert(cpu.step() == 6 && cpu.sp == 0xABCD);
+  assert(cpu.step() == 4 && cpu.pc == 0xABCD);
+
+  Z80 exchange;
+  exchange.reset();
+  exchange.sp = 0x2000;
+  exchange.h = 0x12; exchange.l = 0x34;
+  exchange.memory[0x2000] = 0x78;
+  exchange.memory[0x2001] = 0x56;
+  exchange.memory[0] = 0xE3;
+  assert(exchange.step() == 19);
+  assert(exchange.h == 0x56 && exchange.l == 0x78);
+  assert(exchange.memory[0x2000] == 0x34 && exchange.memory[0x2001] == 0x12);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -162,6 +188,7 @@ int main() {
   conditionalJumpCallAndReturn();
   conditionalJumpAndReturn();
   extendedSixteenBitArithmetic();
+  sixteenBitTransfersAndExchanges();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
