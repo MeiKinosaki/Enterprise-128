@@ -175,6 +175,11 @@ std::uint32_t Z80::step() {
       case 0x10: { const auto displacement = static_cast<std::int8_t>(fetch8()); --b; if (b != 0) { pc = static_cast<std::uint16_t>(pc + displacement); used = 13; } else used = 8; break; } // DJNZ
       case 0x18: { const auto displacement = static_cast<std::int8_t>(fetch8()); pc = static_cast<std::uint16_t>(pc + displacement); used = 12; break; }
       case 0x20: case 0x28: case 0x30: case 0x38: { const auto displacement = static_cast<std::int8_t>(fetch8()); const unsigned cc = (op == 0x20 ? 0 : op == 0x28 ? 1 : op == 0x30 ? 2 : 3); if (condition(cc)) { pc = static_cast<std::uint16_t>(pc + displacement); used = 12; } else used = 7; break; }
+      case 0x37: { // SCF: preserve S/Z/PV, copy undocumented bits from A, set carry
+        f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | C);
+        used = 4;
+        break;
+      }
       case 0x27: { // DAA
         std::uint8_t correction = 0; bool carry = (f & C) != 0;
         if ((f & H) || (!(f & N) && (a & 0x0F) > 9)) correction |= 0x06;
