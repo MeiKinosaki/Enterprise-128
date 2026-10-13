@@ -170,7 +170,7 @@ std::uint32_t Z80::step() {
       case 0x32: { const auto addr = fetch16(); write8(addr, a); used = 13; break; }
       case 0x3A: { const auto addr = fetch16(); a = read8(addr); used = 13; break; }
       case 0x07: { const bool carry = (a & 0x80) != 0; a = static_cast<std::uint8_t>((a << 1) | (carry ? 1 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | (carry ? C : 0)); used = 4; break; } // RLCA
-      case 0x0F: { const bool carry = (a & 1) != 0; a = static_cast<std::uint8_t>((a >> 1) | (carry ? 0x80 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & (5|0x20)) | (carry ? C : 0)); used = 4; break; }
+      case 0x0F: { const bool carry = (a & 1) != 0; a = static_cast<std::uint8_t>((a >> 1) | (carry ? 0x80 : 0)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | (carry ? C : 0)); used = 4; break; }
       case 0x09: case 0x19: case 0x29: case 0x39: { const auto lhs = getPair(2), rhs = getPair((op >> 4) & 3); const std::uint32_t sum = static_cast<std::uint32_t>(lhs) + rhs; setPair(2, static_cast<std::uint16_t>(sum)); f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (((lhs ^ rhs ^ sum) & 0x1000) ? H : 0) | (sum > 0xFFFF ? C : 0)); used = 11; break; }
       case 0x10: { const auto displacement = static_cast<std::int8_t>(fetch8()); --b; if (b != 0) { pc = static_cast<std::uint16_t>(pc + displacement); used = 13; } else used = 8; break; } // DJNZ
       case 0x18: { const auto displacement = static_cast<std::int8_t>(fetch8()); pc = static_cast<std::uint16_t>(pc + displacement); used = 12; break; }
