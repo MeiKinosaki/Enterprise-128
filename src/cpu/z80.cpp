@@ -219,9 +219,26 @@ std::uint32_t Z80::step() {
       case 0xAF: a = 0; f = Z | PV; used = 4; break; // XOR A
       case 0xA7: f = static_cast<std::uint8_t>(szp(a) | H); used = 4; break; // AND A
       case 0xB7: f = szp(a); used = 4; break; // OR A
-      case 0xED: { // Extended Z80 opcodes: 16-bit ADC/SBC HL,rr
+      case 0xED: { // Extended Z80 opcodes
         const std::uint8_t ext = fetch8();
-        if ((ext & 0xCF) == 0x4A || (ext & 0xCF) == 0x42) {
+        if (ext == 0xA0 || ext == 0xA8 || ext == 0xB0 || ext == 0xB8) {
+          const bool decrement = (ext == 0xA8 || ext == 0xB8);
+          const bool repeat = (ext == 0xB0 || ext == 0xB8);
+          const std::uint16_t hl = getPair(2), de = getPair(1);
+          const std::uint8_t value = read8(hl);
+          write8(de, value);
+          setPair(2, static_cast<std::uint16_t>(hl + (decrement ? -1 : 1)));
+          setPair(1, static_cast<std::uint16_t>(de + (decrement ? -1 : 1)));
+          const std::uint16_t bc = static_cast<std::uint16_t>(getPair(0) - 1);
+          setPair(0, bc);
+          const std::uint8_t sum = static_cast<std::uint8_t>(a + value);
+          f = static_cast<std::uint8_t>((f & (S|Z|C)) | (bc != 0 ? PV : 0) |
+              (sum & 0x08) | ((sum & 0x02) << 4));
+          if (repeat && bc != 0) {
+            pc = static_cast<std::uint16_t>(pc - 2);
+            used = 21;
+          } else used = 16;
+        } else if ((ext & 0xCF) == 0x4A || (ext & 0xCF) == 0x42) {
           const unsigned pairIndex = (ext >> 4) & 3;
           const std::uint16_t lhs = getPair(2);
           const std::uint16_t rhs = getPair(pairIndex);
