@@ -85,6 +85,31 @@ static void conditionalJumpCallAndReturn() {
   assert(notTaken.step() == 4 && notTaken.halted);
 }
 
+static void conditionalJumpAndReturn() {
+  Z80 cpu;
+  cpu.reset();
+  // LD A,1; OR A; JP NZ,0008h; HALT; target: CALL 000Ch; HALT; RET NZ
+  const std::uint8_t program[] = {
+      0x3E, 0x01, 0xB7, 0xC2, 0x08, 0x00, 0x76, 0x00,
+      0xCD, 0x0C, 0x00, 0x76, 0xC0};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 7);
+  assert(cpu.step() == 4 && (cpu.f & Z80::FlagZ) == 0);
+  assert(cpu.step() == 10 && cpu.pc == 8);
+  assert(cpu.step() == 17 && cpu.pc == 12);
+  assert(cpu.step() == 5 && cpu.pc == 11); // RET NZ, condition true
+  assert(cpu.step() == 4 && cpu.halted);
+
+  Z80 retNotTaken;
+  retNotTaken.reset();
+  const std::uint8_t retProgram[] = {0x3E, 0x00, 0xB7, 0xC0, 0x76};
+  retNotTaken.load(0, retProgram, sizeof(retProgram));
+  assert(retNotTaken.step() == 7);
+  assert(retNotTaken.step() == 4 && (retNotTaken.f & Z80::FlagZ));
+  assert(retNotTaken.step() == 5 && retNotTaken.pc == 4);
+  assert(retNotTaken.step() == 4 && retNotTaken.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -106,6 +131,7 @@ int main() {
   pairsStackCallAndReturn();
   branchAndUnsupportedOpcode();
   conditionalJumpCallAndReturn();
+  conditionalJumpAndReturn();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
