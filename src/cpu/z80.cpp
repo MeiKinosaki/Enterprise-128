@@ -175,6 +175,35 @@ std::uint32_t Z80::step() {
       case 0x10: { const auto displacement = static_cast<std::int8_t>(fetch8()); --b; if (b != 0) { pc = static_cast<std::uint16_t>(pc + displacement); used = 13; } else used = 8; break; } // DJNZ
       case 0x18: { const auto displacement = static_cast<std::int8_t>(fetch8()); pc = static_cast<std::uint16_t>(pc + displacement); used = 12; break; }
       case 0x20: case 0x28: case 0x30: case 0x38: { const auto displacement = static_cast<std::int8_t>(fetch8()); const unsigned cc = (op == 0x20 ? 0 : op == 0x28 ? 1 : op == 0x30 ? 2 : 3); if (condition(cc)) { pc = static_cast<std::uint16_t>(pc + displacement); used = 12; } else used = 7; break; }
+      case 0x17: { // RLA
+        const bool oldCarry = (f & C) != 0;
+        const bool carry = (a & 0x80) != 0;
+        a = static_cast<std::uint8_t>((a << 1) | (oldCarry ? 1 : 0));
+        f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | (carry ? C : 0));
+        used = 4;
+        break;
+      }
+      case 0x1F: { // RRA
+        const bool oldCarry = (f & C) != 0;
+        const bool carry = (a & 1) != 0;
+        a = static_cast<std::uint8_t>((a >> 1) | (oldCarry ? 0x80 : 0));
+        f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | (carry ? C : 0));
+        used = 4;
+        break;
+      }
+      case 0x2F: { // CPL
+        a = static_cast<std::uint8_t>(~a);
+        f = static_cast<std::uint8_t>((f & (S|Z|PV|C)) | H | N | (a & 0x28));
+        used = 4;
+        break;
+      }
+      case 0x3F: { // CCF
+        const bool oldCarry = (f & C) != 0;
+        f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) |
+            (oldCarry ? H : 0) | (oldCarry ? 0 : C));
+        used = 4;
+        break;
+      }
       case 0x37: { // SCF: preserve S/Z/PV, copy undocumented bits from A, set carry
         f = static_cast<std::uint8_t>((f & (S|Z|PV)) | (a & 0x28) | C);
         used = 4;
