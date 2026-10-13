@@ -221,6 +221,19 @@ std::uint32_t Z80::step() {
         }
         break;
       }
+      case 0xE9: pc = getPair(2); used = 4; break; // JP (HL)
+      case 0xEB: { // EX DE,HL
+        const std::uint16_t de = getPair(1), hl = getPair(2);
+        setPair(1, hl); setPair(2, de); used = 4; break;
+      }
+      case 0xE3: { // EX (SP),HL
+        const std::uint8_t lo = read8(sp);
+        const std::uint8_t hi = read8(static_cast<std::uint16_t>(sp + 1));
+        write8(sp, l);
+        write8(static_cast<std::uint16_t>(sp + 1), h);
+        l = lo; h = hi; used = 19; break;
+      }
+      case 0xF9: sp = getPair(2); used = 6; break; // LD SP,HL
       case 0xC3: pc = fetch16(); used = 10; break;
       case 0xC9: pc = pop(); used = 10; break; // RET
       case 0xCD: { const auto addr = fetch16(); push(pc); pc = addr; used = 17; break; } // CALL
