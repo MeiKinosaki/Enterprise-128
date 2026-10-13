@@ -12,8 +12,8 @@
 
 namespace enterprise128::machine {
 
-// System-level facade for staged integration. The CPU still executes from its
-// own flat test memory; Memory is not yet wired into Z80 fetch/read/write.
+// System-level facade for staged integration. reset() connects Z80 fetches and
+// data/stack accesses to generic banked RAM through read/write callbacks.
 class Emulator {
  public:
   void reset();
