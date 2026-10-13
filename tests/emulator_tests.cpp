@@ -17,6 +17,12 @@ static void testMappedInstructionAndDataBus() {
 
   emulator.memory().mapWindow(0, 4);
   assert(emulator.memory().read(0x0000) == 0);
+  // Fetch must now see bank 4's zero byte (NOP), not the LD A,n in bank 0.
+  emulator.cpu().halted = false;
+  emulator.cpu().pc = 0;
+  const auto oldA = emulator.cpu().a;
+  assert(emulator.stepInstruction() == 4);
+  assert(emulator.cpu().pc == 1 && emulator.cpu().a == oldA);
   emulator.memory().mapWindow(0, 0);
   assert(emulator.memory().read(0x0000) == 0x3E);
 }
