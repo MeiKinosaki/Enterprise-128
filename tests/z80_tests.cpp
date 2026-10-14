@@ -195,11 +195,16 @@ static void blockCopyInstructions() {
   assert(cpu.step() == 10);
   assert(cpu.step() == 10);
   assert(cpu.step() == 10);
+  // LDIR copies one byte per iteration; the first iteration repeats.
   assert(cpu.step() == 21 && cpu.pc == 9);
-  assert(cpu.memory[0x2100] == 0x41 && cpu.memory[0x2101] == 0x42);
+  assert(cpu.memory[0x2100] == 0x41 && cpu.memory[0x2101] == 0x00);
+  assert(cpu.h == 0x20 && cpu.l == 0x01 && cpu.d == 0x21 && cpu.e == 0x01);
+  assert(cpu.b == 0 && cpu.c == 1 && (cpu.f & Z80::FlagPV) != 0);
+  // Final iteration copies the second byte and continues past the ED opcode.
+  assert(cpu.step() == 16 && cpu.pc == 11);
+  assert(cpu.memory[0x2101] == 0x42);
   assert(cpu.h == 0x20 && cpu.l == 0x02 && cpu.d == 0x21 && cpu.e == 0x02);
   assert(cpu.b == 0 && cpu.c == 0 && (cpu.f & Z80::FlagPV) == 0);
-  assert(cpu.step() == 16 && cpu.pc == 11);
   assert(cpu.step() == 4 && cpu.halted);
 }
 
