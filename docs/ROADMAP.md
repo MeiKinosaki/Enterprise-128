@@ -25,7 +25,9 @@
 - [x] Add ED block-copy instructions LDI/LDD/LDIR/LDDR with repeat behavior and cycle counts.
 - [x] Add CB-prefixed rotate/shift, BIT, RES and SET instruction families.
 - [x] Add immediate-port IN A,(n)/OUT (n),A callbacks as a generic I/O seam.
-- [ ] Finish remaining Z80 instruction families, exact flag/timing semantics, interrupts and I/O.
+- [x] Add immediate-port IN A,(n)/OUT (n),A callbacks as a generic I/O seam.
+- [ ] Implement remaining register-indirect and block I/O instructions after confirming machine-specific port decoding.
+- [ ] Finish remaining Z80 instruction families, exact flag/timing semantics and interrupts.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
 ## v0.3b — subsystem prototypes (in progress)
