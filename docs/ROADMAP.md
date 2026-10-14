@@ -15,6 +15,7 @@
 - [x] Add regression coverage for accumulator rotates, complement and carry-flag changes.
 - [x] Add LDIR regression coverage for repeated copies, pointer updates and completion flags.
 - [x] Correct LDIR regression expectations to check each repeat iteration separately.
+- [x] Add CB-prefixed register and (HL) regression cases for rotate, BIT, RES and SET.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
 - [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
 - [x] Add conditional JP, CALL and RET instruction families with taken/not-taken cycle counts.
@@ -22,6 +23,7 @@
 - [x] Add JP (HL), EX DE,HL, EX (SP),HL and LD SP,HL instructions.
 - [x] Add RLA, RRA, CPL and CCF accumulator/flag instructions.
 - [x] Add ED block-copy instructions LDI/LDD/LDIR/LDDR with repeat behavior and cycle counts.
+- [x] Add CB-prefixed rotate/shift, BIT, RES and SET instruction families.
 - [ ] Finish remaining Z80 instruction families, exact flag/timing semantics, interrupts and I/O.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
