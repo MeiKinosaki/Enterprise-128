@@ -24,6 +24,7 @@
 - [x] Add RLA, RRA, CPL and CCF accumulator/flag instructions.
 - [x] Add ED block-copy instructions LDI/LDD/LDIR/LDDR with repeat behavior and cycle counts.
 - [x] Add CB-prefixed rotate/shift, BIT, RES and SET instruction families.
+- [x] Add immediate-port IN A,(n)/OUT (n),A callbacks as a generic I/O seam.
 - [ ] Finish remaining Z80 instruction families, exact flag/timing semantics, interrupts and I/O.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
@@ -48,7 +49,8 @@
 - [x] Add regression coverage that instruction fetch follows the selected RAM bank.
 - [x] Add regression coverage for CALL/RET stack accesses through the mapped bus.
 - [ ] Verify these tests in a successful CI run and expand boundary/mapping coverage.
-- [ ] Add memory-mapped or port-mapped I/O only after verifying Enterprise hardware behavior.
+- [x] Add a generic port-I/O callback seam and immediate IN/OUT regression coverage.
+- [ ] Map ports to Enterprise hardware only after verifying Enterprise hardware behavior.
 - [ ] Add deterministic frame/audio stepping and machine-level integration tests.
 
 ## Xbox 360 delivery (not yet implemented)
