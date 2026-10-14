@@ -18,6 +18,7 @@ std::uint8_t szp(std::uint8_t v) {
 
 void Z80::setBus(ReadCallback read, WriteCallback write) { busRead_ = std::move(read); busWrite_ = std::move(write); }
 void Z80::clearBus() { busRead_ = {}; busWrite_ = {}; }
+void Z80::setIoBus(PortReadCallback read, PortWriteCallback write) { portRead_ = std::move(read); portWrite_ = std::move(write); }
 std::uint8_t Z80::read8(std::uint16_t address) const { return busRead_ ? busRead_(address) : memory[address]; }
 void Z80::write8(std::uint16_t address, std::uint8_t value) { if (busWrite_) busWrite_(address, value); else memory[address] = value; }
 
@@ -345,6 +346,20 @@ std::uint32_t Z80::step() {
         else if (op == 0xEE) { a ^= value; f = szp(a); }
         else { a |= value; f = szp(a); }
         used = 7; break;
+      }
+      case 0xD3: { // OUT (n),A; high port byte is A before the write
+        const std::uint8_t low = fetch8();
+        const std::uint16_t port = static_cast<std::uint16_t>((a << 8) | low);
+        if (portWrite_) portWrite_(port, a);
+        used = 11;
+        break;
+      }
+      case 0xDB: { // IN A,(n); high port byte is old A
+        const std::uint8_t low = fetch8();
+        const std::uint16_t port = static_cast<std::uint16_t>((a << 8) | low);
+        if (portRead_) a = portRead_(port);
+        used = 11;
+        break;
       }
       case 0xF3: used = 4; break; // DI (interrupt model not wired yet)
       case 0xFB: used = 4; break; // EI (interrupt model not wired yet)
