@@ -219,6 +219,39 @@ std::uint32_t Z80::step() {
       case 0xAF: a = 0; f = Z | PV; used = 4; break; // XOR A
       case 0xA7: f = static_cast<std::uint8_t>(szp(a) | H); used = 4; break; // AND A
       case 0xB7: f = szp(a); used = 4; break; // OR A
+      case 0xCB: { // CB-prefixed rotate/shift, BIT, RES and SET
+        const std::uint8_t ext = fetch8();
+        const unsigned group = ext >> 6;
+        const unsigned bit = (ext >> 3) & 7;
+        const unsigned r = ext & 7;
+        std::uint8_t value = getR(r);
+        if (group == 0) {
+          bool carry = false;
+          std::uint8_t result = value;
+          switch (bit) {
+            case 0: carry = (value & 0x80) != 0; result = static_cast<std::uint8_t>((value << 1) | (carry ? 1 : 0)); break; // RLC
+            case 1: carry = (value & 0x01) != 0; result = static_cast<std::uint8_t>((value >> 1) | (carry ? 0x80 : 0)); break; // RRC
+            case 2: { const bool old = (f & C) != 0; carry = (value & 0x80) != 0; result = static_cast<std::uint8_t>((value << 1) | (old ? 1 : 0)); break; } // RL
+            case 3: { const bool old = (f & C) != 0; carry = (value & 0x01) != 0; result = static_cast<std::uint8_t>((value >> 1) | (old ? 0x80 : 0)); break; } // RR
+            case 4: carry = (value & 0x80) != 0; result = static_cast<std::uint8_t>(value << 1); break; // SLA
+            case 5: carry = (value & 0x01) != 0; result = static_cast<std::uint8_t>((value >> 1) | (value & 0x80)); break; // SRA
+            case 6: carry = (value & 0x80) != 0; result = static_cast<std::uint8_t>((value << 1) | 1); break; // SLL (undocumented)
+            default: carry = (value & 0x01) != 0; result = static_cast<std::uint8_t>(value >> 1); break; // SRL
+          }
+          setR(r, result);
+          f = static_cast<std::uint8_t>(szp(result) | (carry ? C : 0));
+        } else if (group == 1) { // BIT b,r
+          const bool set = (value & (1u << bit)) != 0;
+          f = static_cast<std::uint8_t>((f & C) | H | (set ? 0 : Z | PV) |
+              (bit == 7 && set ? S : 0) | (value & 0x28));
+        } else if (group == 2) { // RES b,r
+          setR(r, static_cast<std::uint8_t>(value & ~(1u << bit)));
+        } else { // SET b,r
+          setR(r, static_cast<std::uint8_t>(value | (1u << bit)));
+        }
+        used = r == 6 ? (group == 1 ? 12 : 15) : 8;
+        break;
+      }
       case 0xED: { // Extended Z80 opcodes
         const std::uint8_t ext = fetch8();
         if (ext == 0xA0 || ext == 0xA8 || ext == 0xB0 || ext == 0xB8) {
