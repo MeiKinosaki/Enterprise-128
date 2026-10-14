@@ -26,8 +26,11 @@ class Z80 {
 
   using ReadCallback = std::function<std::uint8_t(std::uint16_t)>;
   using WriteCallback = std::function<void(std::uint16_t, std::uint8_t)>;
+  using PortReadCallback = std::function<std::uint8_t(std::uint16_t)>;
+  using PortWriteCallback = std::function<void(std::uint16_t, std::uint8_t)>;
 
   void setBus(ReadCallback read, WriteCallback write);
+  void setIoBus(PortReadCallback read, PortWriteCallback write);
   void clearBus();
   void reset();
   void load(std::uint16_t address, const std::uint8_t* data, std::uint32_t size);
@@ -36,6 +39,8 @@ class Z80 {
  private:
   ReadCallback busRead_{};
   WriteCallback busWrite_{};
+  PortReadCallback portRead_{};
+  PortWriteCallback portWrite_{};
   std::uint8_t read8(std::uint16_t address) const;
   void write8(std::uint16_t address, std::uint8_t value);
 };
