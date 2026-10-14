@@ -208,6 +208,30 @@ static void blockCopyInstructions() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void cbRotateBitResetAndSet() {
+  Z80 cpu;
+  cpu.reset();
+  // LD B,81h; RLC B; BIT 7,B; RES 0,B; SET 0,B; HALT
+  const std::uint8_t program[] = {
+      0x06, 0x81, 0xCB, 0x00, 0xCB, 0x78, 0xCB, 0x80, 0xCB, 0xC0, 0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 7 && cpu.b == 0x81);
+  assert(cpu.step() == 8 && cpu.b == 0x03 && (cpu.f & Z80::FlagC));
+  assert(cpu.step() == 8 && (cpu.f & (Z80::FlagZ | Z80::FlagPV)) ==
+         (Z80::FlagZ | Z80::FlagPV) && (cpu.f & Z80::FlagH));
+  assert(cpu.step() == 8 && cpu.b == 0x02);
+  assert(cpu.step() == 8 && cpu.b == 0x03);
+  assert(cpu.step() == 4 && cpu.halted);
+
+  Z80 memory;
+  memory.reset();
+  memory.h = 0x20; memory.l = 0x00;
+  memory.memory[0] = 0xCB; memory.memory[1] = 0x06; // RLC (HL)
+  memory.memory[0x2000] = 0x80;
+  assert(memory.step() == 15 && memory.memory[0x2000] == 0x01);
+  assert((memory.f & Z80::FlagC) != 0);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -234,6 +258,7 @@ int main() {
   sixteenBitTransfersAndExchanges();
   accumulatorRotateComplementAndCarryFlags();
   blockCopyInstructions();
+  cbRotateBitResetAndSet();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
