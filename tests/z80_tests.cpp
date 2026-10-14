@@ -232,6 +232,26 @@ static void cbRotateBitResetAndSet() {
   assert((memory.f & Z80::FlagC) != 0);
 }
 
+static void immediatePortIoCallbacks() {
+  Z80 cpu;
+  cpu.reset();
+  std::uint16_t writtenPort = 0;
+  std::uint8_t writtenValue = 0;
+  std::uint16_t readPort = 0;
+  cpu.setIoBus(
+      [&](std::uint16_t port) { readPort = port; return static_cast<std::uint8_t>(0x5A); },
+      [&](std::uint16_t port, std::uint8_t value) { writtenPort = port; writtenValue = value; });
+  // LD A,12h; OUT (34h),A; LD A,56h; IN A,(78h); HALT
+  const std::uint8_t program[] = {
+      0x3E, 0x12, 0xD3, 0x34, 0x3E, 0x56, 0xDB, 0x78, 0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 7 && cpu.a == 0x12);
+  assert(cpu.step() == 11 && writtenPort == 0x1234 && writtenValue == 0x12);
+  assert(cpu.step() == 7 && cpu.a == 0x56);
+  assert(cpu.step() == 11 && readPort == 0x5678 && cpu.a == 0x5A);
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -259,6 +279,7 @@ int main() {
   accumulatorRotateComplementAndCarryFlags();
   blockCopyInstructions();
   cbRotateBitResetAndSet();
+  immediatePortIoCallbacks();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
