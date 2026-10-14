@@ -14,6 +14,7 @@
 - [x] Add regression coverage for 16-bit transfer/exchange instructions.
 - [x] Add regression coverage for accumulator rotates, complement and carry-flag changes.
 - [x] Add LDIR regression coverage for repeated copies, pointer updates and completion flags.
+- [x] Correct LDIR regression expectations to check each repeat iteration separately.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
 - [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
 - [x] Add conditional JP, CALL and RET instruction families with taken/not-taken cycle counts.
