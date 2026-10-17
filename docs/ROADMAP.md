@@ -15,6 +15,7 @@
 - [x] Add regression coverage for accumulator rotates, complement and carry-flag changes.
 - [x] Add LDIR regression coverage for repeated copies, pointer updates and completion flags.
 - [x] Correct LDIR regression expectations to check each repeat iteration separately.
+- [x] Add LDDR regression coverage for reverse copies, pointer underflow, repeat cycles and completion flags.
 - [x] Add CB-prefixed register and (HL) regression cases for rotate, BIT, RES and SET.
 - [x] Generic 128 KiB RAM prototype with four 16 KiB windows.
 - [x] Implement the register-to-register ADD/ADC/SUB/SBC/AND/XOR/OR/CP opcode family with core flag calculations.
@@ -52,6 +53,7 @@
 - [x] Load test programs into mapped machine RAM.
 - [x] Add regression coverage that instruction fetch follows the selected RAM bank.
 - [x] Add regression coverage for CALL/RET stack accesses through the mapped bus.
+- [x] Expand memory mapping tests for invalid window/bank values and reset defaults.
 - [ ] Verify these tests in a successful CI run and expand boundary/mapping coverage.
 - [x] Add a generic port-I/O callback seam and immediate IN/OUT regression coverage.
 - [x] Expose configurable port callbacks through the machine facade and reconnect them after reset.
