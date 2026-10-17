@@ -255,7 +255,19 @@ std::uint32_t Z80::step() {
       }
       case 0xED: { // Extended Z80 opcodes
         const std::uint8_t ext = fetch8();
-        if (ext == 0xA0 || ext == 0xA8 || ext == 0xB0 || ext == 0xB8) {
+        if ((ext & 0xC7) == 0x40) { // IN r,(C), including undocumented IN (C)
+          const unsigned r = (ext >> 3) & 7;
+          const std::uint16_t port = getPair(0);
+          const std::uint8_t value = portRead_ ? portRead_(port) : 0xFF;
+          if (r != 6) setR(r, value);
+          f = static_cast<std::uint8_t>((f & C) | szp(value) | (value & 0x28));
+          used = 12;
+        } else if ((ext & 0xC7) == 0x41) { // OUT (C),r; OUT (C),0 for r=6
+          const unsigned r = (ext >> 3) & 7;
+          const std::uint8_t value = r == 6 ? 0 : getR(r);
+          if (portWrite_) portWrite_(getPair(0), value);
+          used = 12;
+        } else if (ext == 0xA0 || ext == 0xA8 || ext == 0xB0 || ext == 0xB8) {
           const bool decrement = (ext == 0xA8 || ext == 0xB8);
           const bool repeat = (ext == 0xB0 || ext == 0xB8);
           const std::uint16_t hl = getPair(2), de = getPair(1);
