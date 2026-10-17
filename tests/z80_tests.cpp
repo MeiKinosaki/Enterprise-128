@@ -252,6 +252,35 @@ static void immediatePortIoCallbacks() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void registerIndirectPortIo() {
+  Z80 cpu;
+  cpu.reset();
+  std::uint16_t seenPort = 0;
+  std::uint8_t seenValue = 0xFF;
+  cpu.setIoBus(
+      [&](std::uint16_t port) {
+        seenPort = port;
+        return static_cast<std::uint8_t>(0xA5);
+      },
+      [&](std::uint16_t port, std::uint8_t value) {
+        seenPort = port;
+        seenValue = value;
+      });
+  // BC=1234h; IN D,(C); OUT (C),D; IN (C); OUT (C),0; HALT
+  const std::uint8_t program[] = {
+      0x01, 0x34, 0x12, 0xED, 0x50, 0xED, 0x51,
+      0xED, 0x70, 0xED, 0x71, 0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 10 && cpu.b == 0x12 && cpu.c == 0x34);
+  assert(cpu.step() == 12 && cpu.d == 0xA5 && seenPort == 0x1234);
+  assert((cpu.f & (Z80::FlagS | Z80::FlagPV | Z80::FlagH)) ==
+         (Z80::FlagS | Z80::FlagPV | Z80::FlagH));
+  assert(cpu.step() == 12 && seenPort == 0x1234 && seenValue == 0xA5);
+  assert(cpu.step() == 12 && seenPort == 0x1234); // IN (C) discards data but updates flags
+  assert(cpu.step() == 12 && seenValue == 0); // undocumented OUT (C),0
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -280,6 +309,7 @@ int main() {
   blockCopyInstructions();
   cbRotateBitResetAndSet();
   immediatePortIoCallbacks();
+  registerIndirectPortIo();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
