@@ -42,6 +42,30 @@ static void testStackUsesMappedBus() {
   assert(emulator.memory().read(0xFFFE) == 0x00);
 }
 
+static void testIntegratedPortBusSurvivesReset() {
+  enterprise128::machine::Emulator emulator;
+  std::uint16_t lastReadPort = 0;
+  std::uint16_t lastWritePort = 0;
+  std::uint8_t lastWrittenValue = 0;
+  emulator.setPortBus(
+      [&](std::uint16_t port) {
+        lastReadPort = port;
+        return static_cast<std::uint8_t>(0xA6);
+      },
+      [&](std::uint16_t port, std::uint8_t value) {
+        lastWritePort = port;
+        lastWrittenValue = value;
+      });
+  emulator.reset();
+  // LD A,12h; OUT (34h),A; IN A,(78h); HALT
+  const std::uint8_t program[] = {0x3E, 0x12, 0xD3, 0x34, 0xDB, 0x78, 0x76};
+  assert(emulator.loadProgram(0, program, sizeof(program)));
+  assert(emulator.runInstructions(10) == 4);
+  assert(lastWritePort == 0x1234 && lastWrittenValue == 0x12);
+  assert(lastReadPort == 0x1234); // IN's high port byte is the pre-read A value
+  assert(emulator.cpu().a == 0xA6 && emulator.cpu().halted);
+}
+
 static void testSubsystemResetAndSmoke() {
   enterprise128::machine::Emulator emulator;
   emulator.reset();
@@ -65,5 +89,6 @@ int main() {
   testMappedInstructionAndDataBus();
   testStackUsesMappedBus();
   testSubsystemResetAndSmoke();
+  testIntegratedPortBusSurvivesReset();
   std::cout << "Integrated machine bus tests passed\n";
 }
