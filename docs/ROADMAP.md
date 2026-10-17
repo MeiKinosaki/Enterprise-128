@@ -54,6 +54,7 @@
 - [x] Add regression coverage for CALL/RET stack accesses through the mapped bus.
 - [ ] Verify these tests in a successful CI run and expand boundary/mapping coverage.
 - [x] Add a generic port-I/O callback seam and immediate IN/OUT regression coverage.
+- [x] Expose configurable port callbacks through the machine facade and reconnect them after reset.
 - [x] Add ED register-indirect IN r,(C) and OUT (C),r families with 12-cycle timing and callback-based ports.
 - [x] Add regression coverage for IN flags, register transfer, discarded IN (C), and OUT (C),0 behavior.
 - [ ] Map ports to Enterprise hardware only after verifying Enterprise hardware behavior.
