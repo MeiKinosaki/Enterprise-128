@@ -1,6 +1,14 @@
 #include "machine/emulator.h"
 
+#include <utility>
+
 namespace enterprise128::machine {
+
+void Emulator::setPortBus(PortReadCallback read, PortWriteCallback write) {
+  portRead_ = std::move(read);
+  portWrite_ = std::move(write);
+  cpu_.setIoBus(portRead_, portWrite_);
+}
 
 void Emulator::reset() {
   cpu_.reset();
@@ -12,6 +20,7 @@ void Emulator::reset() {
   cpu_.setBus(
       [this](std::uint16_t address) { return memory_.read(address); },
       [this](std::uint16_t address, std::uint8_t value) { memory_.write(address, value); });
+  cpu_.setIoBus(portRead_, portWrite_);
 }
 
 bool Emulator::loadProgram(std::uint16_t address, const std::uint8_t* bytes, std::uint32_t size) {
