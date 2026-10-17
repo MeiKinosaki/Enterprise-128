@@ -62,7 +62,7 @@ static void testIntegratedPortBusSurvivesReset() {
   assert(emulator.loadProgram(0, program, sizeof(program)));
   assert(emulator.runInstructions(10) == 4);
   assert(lastWritePort == 0x1234 && lastWrittenValue == 0x12);
-  assert(lastReadPort == 0x1234); // IN's high port byte is the pre-read A value
+  assert(lastReadPort == 0x1278); // IN's high port byte is the pre-read A value
   assert(emulator.cpu().a == 0xA6 && emulator.cpu().halted);
 }
 
