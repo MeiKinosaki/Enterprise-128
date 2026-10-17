@@ -37,6 +37,7 @@
 - [x] Controller button state.
 - [x] Raw in-memory tape byte container.
 - [x] Smoke tests for subsystem APIs.
+- [x] Expand NICK framebuffer bounds/masking, DAVE register boundary/reset, controller invalid-input/reset, and tape invalid-load regression checks.
 - [ ] Implement real NICK modes, timing, palette and interrupts.
 - [ ] Implement DAVE channels, timers and audio generation.
 - [ ] Implement Enterprise keyboard matrix and joystick port mapping.
@@ -53,6 +54,8 @@
 - [x] Add regression coverage for CALL/RET stack accesses through the mapped bus.
 - [ ] Verify these tests in a successful CI run and expand boundary/mapping coverage.
 - [x] Add a generic port-I/O callback seam and immediate IN/OUT regression coverage.
+- [x] Add ED register-indirect IN r,(C) and OUT (C),r families with 12-cycle timing and callback-based ports.
+- [x] Add regression coverage for IN flags, register transfer, discarded IN (C), and OUT (C),0 behavior.
 - [ ] Map ports to Enterprise hardware only after verifying Enterprise hardware behavior.
 - [ ] Add deterministic frame/audio stepping and machine-level integration tests.
 
