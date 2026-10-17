@@ -208,6 +208,30 @@ static void blockCopyInstructions() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void blockCopyDecrementInstructions() {
+  Z80 cpu;
+  cpu.reset();
+  // LDDR copies bytes backward, decrementing HL, DE and BC after each byte.
+  const std::uint8_t program[] = {
+      0x21, 0x01, 0x20, 0x11, 0x01, 0x21, 0x01, 0x02, 0x00,
+      0xED, 0xB8, 0x76};
+  cpu.load(0, program, sizeof(program));
+  cpu.memory[0x2001] = 0xA1;
+  cpu.memory[0x2000] = 0xB2;
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 21 && cpu.pc == 9);
+  assert(cpu.memory[0x2101] == 0xA1 && cpu.memory[0x2100] == 0);
+  assert(cpu.h == 0x20 && cpu.l == 0x00 && cpu.d == 0x21 && cpu.e == 0x00);
+  assert(cpu.b == 0 && cpu.c == 1 && (cpu.f & Z80::FlagPV));
+  assert(cpu.step() == 16 && cpu.pc == 11);
+  assert(cpu.memory[0x2100] == 0xB2);
+  assert(cpu.h == 0x1F && cpu.l == 0xFF && cpu.d == 0x20 && cpu.e == 0xFF);
+  assert(cpu.b == 0 && cpu.c == 0 && (cpu.f & Z80::FlagPV) == 0);
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void cbRotateBitResetAndSet() {
   Z80 cpu;
   cpu.reset();
@@ -308,6 +332,7 @@ int main() {
   sixteenBitTransfersAndExchanges();
   accumulatorRotateComplementAndCarryFlags();
   blockCopyInstructions();
+  blockCopyDecrementInstructions();
   cbRotateBitResetAndSet();
   immediatePortIoCallbacks();
   registerIndirectPortIo();
