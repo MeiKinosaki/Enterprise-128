@@ -273,8 +273,9 @@ static void registerIndirectPortIo() {
   cpu.load(0, program, sizeof(program));
   assert(cpu.step() == 10 && cpu.b == 0x12 && cpu.c == 0x34);
   assert(cpu.step() == 12 && cpu.d == 0xA5 && seenPort == 0x1234);
-  assert((cpu.f & (Z80::FlagS | Z80::FlagPV | Z80::FlagH)) ==
-         (Z80::FlagS | Z80::FlagPV | Z80::FlagH));
+  assert((cpu.f & (Z80::FlagS | Z80::FlagPV)) ==
+         (Z80::FlagS | Z80::FlagPV));
+  assert((cpu.f & (Z80::FlagH | Z80::FlagN | Z80::FlagZ)) == 0);
   assert(cpu.step() == 12 && seenPort == 0x1234 && seenValue == 0xA5);
   assert(cpu.step() == 12 && seenPort == 0x1234); // IN (C) discards data but updates flags
   assert(cpu.step() == 12 && seenValue == 0); // undocumented OUT (C),0
