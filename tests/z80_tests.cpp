@@ -324,6 +324,7 @@ static void blockPortIoInstructions() {
       0x01, 0x10, 0x02, 0x21, 0x00, 0x20, 0xED, 0xB2,
       0xED, 0xA3, 0x76};
   cpu.load(0, program, sizeof(program));
+  cpu.memory[0x2002] = 0x32; // source byte for the subsequent OUTI check
   assert(cpu.step() == 10);
   assert(cpu.step() == 10);
   assert(cpu.step() == 21 && cpu.pc == 6 && cpu.b == 1);
