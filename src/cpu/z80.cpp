@@ -267,6 +267,40 @@ std::uint32_t Z80::step() {
           const std::uint8_t value = r == 6 ? 0 : getR(r);
           if (portWrite_) portWrite_(getPair(0), value);
           used = 12;
+        } else if (ext == 0xA2 || ext == 0xAA || ext == 0xB2 || ext == 0xBA ||
+                   ext == 0xA3 || ext == 0xAB || ext == 0xB3 || ext == 0xBB) {
+          const bool input = (ext == 0xA2 || ext == 0xAA || ext == 0xB2 || ext == 0xBA);
+          const bool decrement = (ext == 0xAA || ext == 0xBA || ext == 0xAB || ext == 0xBB);
+          const bool repeat = (ext == 0xB2 || ext == 0xBA || ext == 0xB3 || ext == 0xBB);
+          const std::uint16_t hl = getPair(2);
+          const std::uint16_t port = getPair(0);
+          std::uint8_t value = 0;
+          if (input) {
+            value = portRead_ ? portRead_(port) : 0xFF;
+            write8(hl, value);
+          } else {
+            value = read8(hl);
+            if (portWrite_) portWrite_(port, value);
+          }
+          const std::uint8_t nextB = static_cast<std::uint8_t>(b - 1);
+          const std::uint8_t nextL = static_cast<std::uint8_t>(l + (decrement ? -1 : 1));
+          b = nextB;
+          setPair(2, static_cast<std::uint16_t>((h << 8) | nextL));
+          const unsigned adjustment = input
+              ? static_cast<unsigned>(static_cast<std::uint8_t>(c + (decrement ? -1 : 1)))
+              : static_cast<unsigned>(nextL);
+          const unsigned sum = static_cast<unsigned>(value) + adjustment;
+          const bool halfCarry = sum > 0xFFu;
+          const bool carry = halfCarry;
+          const std::uint8_t parityInput = static_cast<std::uint8_t>((sum & 7u) ^ nextB);
+          f = static_cast<std::uint8_t>((nextB & (S | Y | X)) |
+              (nextB == 0 ? Z : 0) | (halfCarry ? H : 0) |
+              (parityEven(parityInput) ? PV : 0) | ((value & 0x80) ? N : 0) |
+              (carry ? C : 0));
+          if (repeat && nextB != 0) {
+            pc = static_cast<std::uint16_t>(pc - 2);
+            used = 21;
+          } else used = 16;
         } else if (ext == 0xA0 || ext == 0xA8 || ext == 0xB0 || ext == 0xB8) {
           const bool decrement = (ext == 0xA8 || ext == 0xB8);
           const bool repeat = (ext == 0xB0 || ext == 0xB8);
