@@ -41,7 +41,8 @@
 - [x] Raw in-memory tape byte container.
 - [x] Smoke tests for subsystem APIs.
 - [x] Expand NICK framebuffer bounds/masking, DAVE register boundary/reset, controller invalid-input/reset, and tape invalid-load regression checks.
-- [ ] Implement real NICK modes, timing, palette and interrupts.
+- [x] Add a configurable 16-entry RGB palette interface with bounds tests (neutral fallback only).
+- [ ] Implement authentic Enterprise NICK modes, hardware palette, timing and interrupts.
 - [ ] Implement DAVE channels, timers and audio generation.
 - [x] Add a generic active-low 8x8 keyboard matrix API with boundary/reset tests.
 - [ ] Verify Enterprise-specific keyboard row/column wiring and connect the matrix to decoded hardware ports.
