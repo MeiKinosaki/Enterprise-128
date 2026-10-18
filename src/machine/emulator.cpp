@@ -16,6 +16,7 @@ void Emulator::reset() {
   video_.reset();
   audio_.reset();
   controller_.reset();
+  keyboard_.reset();
   tape_.clear();
   cpu_.setBus(
       [this](std::uint16_t address) { return memory_.read(address); },
