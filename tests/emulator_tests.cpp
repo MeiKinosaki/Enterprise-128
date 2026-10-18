@@ -74,7 +74,9 @@ static void testSubsystemResetAndSmoke() {
   emulator.audio().writeRegister(2, 0x44);
   assert(emulator.audio().readRegister(2) == 0x44);
   emulator.controller().set(enterprise128::input::Controller::Fire1, true);
+  emulator.keyboard().setKey(1, 2, true);
   assert(emulator.controller().pressed(enterprise128::input::Controller::Fire1));
+  assert(emulator.keyboard().keyPressed(1, 2));
   const std::uint8_t tapeBytes[] = {0x10, 0x20};
   assert(emulator.tape().loadBytes(tapeBytes, sizeof(tapeBytes)));
   assert(emulator.tape().bytes().size() == 2);
@@ -83,6 +85,7 @@ static void testSubsystemResetAndSmoke() {
   assert(emulator.memory().read(0x0000) == 0);
   assert(emulator.video().pixel(3, 4) == 0);
   assert(emulator.tape().empty());
+  assert(!emulator.keyboard().keyPressed(1, 2) && emulator.keyboard().readRow(1) == 0xFF);
 }
 
 int main() {
