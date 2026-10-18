@@ -28,7 +28,9 @@
 - [x] Add immediate-port IN A,(n)/OUT (n),A callbacks as a generic I/O seam.
 - [x] Implement ED register-indirect IN r,(C) and OUT (C),r families with 12-cycle timing and callback-based ports.
 - [x] Add regression coverage for IN flags, register transfer, discarded IN (C), and OUT (C),0 behavior.
-- [ ] Implement remaining block I/O instructions after confirming machine-specific port decoding.
+- [x] Add ED block input/output instruction families INI/IND/INIR/INDR and OUTI/OUTD/OTIR/OTDR with callback-backed ports.
+- [x] Add initial regression coverage for repeated block input and block output port traffic.
+- [ ] Validate block-I/O undocumented flag details against a trusted Z80 reference and confirm machine-specific port decoding.
 - [ ] Finish remaining Z80 instruction families, exact flag/timing semantics and interrupts.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
