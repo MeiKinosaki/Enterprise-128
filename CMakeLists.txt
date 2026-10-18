@@ -12,6 +12,7 @@ add_library(enterprise128_core
   src/video/nick.cpp
   src/audio/dave.cpp
   src/input/controller.cpp
+  src/input/keyboard_matrix.cpp
   src/media/tape.cpp)
 target_include_directories(enterprise128_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
