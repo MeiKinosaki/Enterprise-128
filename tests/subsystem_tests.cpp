@@ -15,6 +15,12 @@ int main() {
   nick.setPixel(320, 0, 3);
   nick.setPixel(0, 256, 3);
   assert(nick.pixel(319, 255) == 0);
+  assert(nick.paletteColor(0).r == 0 && nick.paletteColor(15).r == 255);
+  nick.setPaletteColor(3, {12, 34, 56});
+  const auto color = nick.paletteColor(3);
+  assert(color.r == 12 && color.g == 34 && color.b == 56);
+  nick.setPaletteColor(16, {1, 2, 3}); // invalid index ignored
+  assert(nick.paletteColor(16).r == 0);
   enterprise128::audio::Dave dave;
   dave.reset(); dave.writeRegister(3, 0x55);
   assert(dave.readRegister(3) == 0x55 && dave.nextSample() == 0);
