@@ -1,6 +1,7 @@
 #include "video/nick.h"
 #include "audio/dave.h"
 #include "input/controller.h"
+#include "input/keyboard_matrix.h"
 #include "media/tape.h"
 #include <cassert>
 #include <cstdint>
@@ -28,6 +29,17 @@ int main() {
   assert(!pad.pressed(enterprise128::input::Controller::ButtonCount));
   pad.reset();
   assert(!pad.pressed(enterprise128::input::Controller::Fire1));
+  enterprise128::input::KeyboardMatrix keyboard;
+  keyboard.reset();
+  assert(keyboard.readRow(0) == 0xFF && !keyboard.keyPressed(2, 3));
+  keyboard.setKey(2, 3, true);
+  assert(keyboard.keyPressed(2, 3) && keyboard.readRow(2) == 0xF7);
+  keyboard.setKey(2, 3, false);
+  assert(!keyboard.keyPressed(2, 3) && keyboard.readRow(2) == 0xFF);
+  keyboard.setKey(8, 0, true);
+  keyboard.setKey(0, 8, true);
+  assert(keyboard.readRow(8) == 0xFF && !keyboard.keyPressed(8, 0));
+
   const std::uint8_t raw[] = {0x01, 0x02, 0x03};
   enterprise128::media::TapeImage tape;
   assert(tape.loadBytes(raw, sizeof(raw)) && tape.bytes().size() == 3);
