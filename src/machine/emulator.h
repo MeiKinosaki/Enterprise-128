@@ -3,6 +3,7 @@
 #include "audio/dave.h"
 #include "cpu/z80.h"
 #include "input/controller.h"
+#include "input/keyboard_matrix.h"
 #include "machine/memory.h"
 #include "media/tape.h"
 #include "video/nick.h"
@@ -32,6 +33,7 @@ class Emulator {
   video::Nick& video() { return video_; }
   audio::Dave& audio() { return audio_; }
   input::Controller& controller() { return controller_; }
+  input::KeyboardMatrix& keyboard() { return keyboard_; }
   media::TapeImage& tape() { return tape_; }
 
  private:
@@ -40,6 +42,7 @@ class Emulator {
   video::Nick video_{};
   audio::Dave audio_{};
   input::Controller controller_{};
+  input::KeyboardMatrix keyboard_{};
   media::TapeImage tape_{};
   PortReadCallback portRead_{};
   PortWriteCallback portWrite_{};
