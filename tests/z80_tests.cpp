@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
+#include <utility>
+#include <vector>
 
 using enterprise128::cpu::Z80;
 
@@ -306,6 +308,33 @@ static void registerIndirectPortIo() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void blockPortIoInstructions() {
+  Z80 cpu;
+  cpu.reset();
+  std::vector<std::uint16_t> readPorts;
+  std::vector<std::pair<std::uint16_t, std::uint8_t>> writes;
+  cpu.setIoBus(
+      [&](std::uint16_t port) {
+        readPorts.push_back(port);
+        return static_cast<std::uint8_t>(0x31 + readPorts.size());
+      },
+      [&](std::uint16_t port, std::uint8_t value) { writes.emplace_back(port, value); });
+  // BC=0210h; HL=2000h; INI twice via INIR, then OUTI once.
+  const std::uint8_t program[] = {
+      0x01, 0x10, 0x02, 0x21, 0x00, 0x20, 0xED, 0xB2,
+      0xED, 0xA3, 0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 21 && cpu.pc == 6 && cpu.b == 1);
+  assert(cpu.memory[0x2000] == 0x32 && readPorts.size() == 1);
+  assert(cpu.step() == 16 && cpu.pc == 8 && cpu.b == 0);
+  assert(cpu.memory[0x2001] == 0x33 && readPorts.size() == 2);
+  assert(cpu.step() == 16 && cpu.pc == 10);
+  assert(writes.size() == 1 && writes[0].first == 0x0010 && writes[0].second == 0x32);
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -336,6 +365,7 @@ int main() {
   cbRotateBitResetAndSet();
   immediatePortIoCallbacks();
   registerIndirectPortIo();
+  blockPortIoInstructions();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
