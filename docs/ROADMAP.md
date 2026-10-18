@@ -43,7 +43,9 @@
 - [x] Expand NICK framebuffer bounds/masking, DAVE register boundary/reset, controller invalid-input/reset, and tape invalid-load regression checks.
 - [ ] Implement real NICK modes, timing, palette and interrupts.
 - [ ] Implement DAVE channels, timers and audio generation.
-- [ ] Implement Enterprise keyboard matrix and joystick port mapping.
+- [x] Add a generic active-low 8x8 keyboard matrix API with boundary/reset tests.
+- [ ] Verify Enterprise-specific keyboard row/column wiring and connect the matrix to decoded hardware ports.
+- [ ] Complete joystick port mapping.
 - [ ] Parse real tape/disk formats and add safe file loading.
 
 ## v0.4b — machine integration scaffold (in progress)
