@@ -243,8 +243,11 @@ std::uint32_t Z80::step() {
           f = static_cast<std::uint8_t>(szp(result) | (carry ? C : 0));
         } else if (group == 1) { // BIT b,r
           const bool set = (value & (1u << bit)) != 0;
+          // On BIT (HL), undocumented flag bits 5/3 are copied from the
+          // high byte of the effective address, not from the memory value.
+          const std::uint8_t undocumented = r == 6 ? h : value;
           f = static_cast<std::uint8_t>((f & C) | H | (set ? 0 : Z | PV) |
-              (bit == 7 && set ? S : 0) | (value & 0x28));
+              (bit == 7 && set ? S : 0) | (undocumented & 0x28));
         } else if (group == 2) { // RES b,r
           setR(r, static_cast<std::uint8_t>(value & ~(1u << bit)));
         } else { // SET b,r
@@ -362,6 +365,13 @@ std::uint32_t Z80::step() {
       case 0xF9: sp = getPair(2); used = 6; break; // LD SP,HL
       case 0xC3: pc = fetch16(); used = 10; break;
       case 0xC9: pc = pop(); used = 10; break; // RET
+      case 0xC7: case 0xCF: case 0xD7: case 0xDF:
+      case 0xE7: case 0xEF: case 0xF7: case 0xFF: { // RST p
+        push(pc);
+        pc = static_cast<std::uint16_t>(op & 0x38);
+        used = 11;
+        break;
+      }
       case 0xCD: { const auto addr = fetch16(); push(pc); pc = addr; used = 17; break; } // CALL
       case 0xC0: case 0xC8: case 0xD0: case 0xD8:
       case 0xE0: case 0xE8: case 0xF0: case 0xF8: { // RET cc
