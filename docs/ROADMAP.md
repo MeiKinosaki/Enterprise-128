@@ -31,6 +31,8 @@
 - [x] Add ED block input/output instruction families INI/IND/INIR/INDR and OUTI/OUTD/OTIR/OTDR with callback-backed ports.
 - [x] Add initial regression coverage for repeated block input and block output port traffic.
 - [ ] Validate block-I/O undocumented flag details against a trusted Z80 reference and confirm machine-specific port decoding.
+- [x] Implement the eight RST restart opcodes with stack/cycle regression coverage.
+- [x] Correct undocumented BIT (HL) flag bits to derive from the effective address high byte.
 - [ ] Finish remaining Z80 instruction families, exact flag/timing semantics and interrupts.
 - [ ] Verify Enterprise-specific memory/ROM mapping.
 
