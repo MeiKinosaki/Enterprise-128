@@ -30,6 +30,7 @@
 - [x] Add regression coverage for IN flags, register transfer, discarded IN (C), and OUT (C),0 behavior.
 - [x] Add ED block input/output instruction families INI/IND/INIR/INDR and OUTI/OUTD/OTIR/OTDR with callback-backed ports.
 - [x] Add initial regression coverage for repeated block input and block output port traffic.
+- [x] Correct block-I/O HL updates to wrap across 16-bit page boundaries and add INI/IND boundary regression coverage.
 - [ ] Validate block-I/O undocumented flag details against a trusted Z80 reference and confirm machine-specific port decoding.
 - [x] Implement the eight RST restart opcodes with stack/cycle regression coverage.
 - [x] Correct undocumented BIT (HL) flag bits to derive from the effective address high byte.
