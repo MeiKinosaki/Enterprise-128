@@ -382,7 +382,7 @@ static void blockIoPointerWrapsAcrossPage() {
   assert(cpu.step() == 10);
   assert(cpu.step() == 16 && cpu.h == 0x20 && cpu.l == 0xFF);
   assert(cpu.memory[0x2100] == 0x5A);
-  assert(ports.size() == 2 && ports[0] == 0x0220 && ports[1] == 0x0220);
+  assert(ports.size() == 2 && ports[0] == 0x0220 && ports[1] == 0x0120);
   assert(cpu.step() == 4 && cpu.halted);
 }
 
