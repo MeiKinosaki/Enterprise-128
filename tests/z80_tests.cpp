@@ -336,6 +336,29 @@ static void blockPortIoInstructions() {
   assert(cpu.step() == 4 && cpu.halted);
 }
 
+static void restartAndBitMemoryUndocumentedFlags() {
+  Z80 rst;
+  rst.reset();
+  const std::uint8_t program[] = {0x3E, 0x42, 0xFF}; // LD A,42h; RST 38h
+  rst.load(0, program, sizeof(program));
+  assert(rst.step() == 7 && rst.a == 0x42);
+  assert(rst.step() == 11 && rst.pc == 0x0038 && rst.sp == 0xFFFD);
+  assert(rst.memory[0xFFFD] == 0x03 && rst.memory[0xFFFE] == 0x00);
+  rst.memory[0x0038] = 0xC9;
+  assert(rst.step() == 10 && rst.pc == 0x0002);
+
+  Z80 bit;
+  bit.reset();
+  bit.h = 0x28;
+  bit.l = 0x00;
+  bit.memory[0] = 0xCB;
+  bit.memory[1] = 0x46; // BIT 0,(HL), memory byte is zero
+  bit.memory[0x2800] = 0x00;
+  assert(bit.step() == 12);
+  assert((bit.f & (Z80::FlagY | Z80::FlagX | Z80::FlagZ | Z80::FlagPV | Z80::FlagH)) ==
+         (Z80::FlagY | Z80::FlagX | Z80::FlagZ | Z80::FlagPV | Z80::FlagH));
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -367,6 +390,7 @@ int main() {
   immediatePortIoCallbacks();
   registerIndirectPortIo();
   blockPortIoInstructions();
+  restartAndBitMemoryUndocumentedFlags();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
   return 0;
