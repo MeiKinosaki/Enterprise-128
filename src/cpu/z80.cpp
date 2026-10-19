@@ -286,12 +286,13 @@ std::uint32_t Z80::step() {
             if (portWrite_) portWrite_(port, value);
           }
           const std::uint8_t nextB = static_cast<std::uint8_t>(b - 1);
-          const std::uint8_t nextL = static_cast<std::uint8_t>(l + (decrement ? -1 : 1));
+          const std::uint16_t nextHL = static_cast<std::uint16_t>(
+              hl + (decrement ? static_cast<std::uint16_t>(0xFFFF) : 1u));
           b = nextB;
-          setPair(2, static_cast<std::uint16_t>((h << 8) | nextL));
+          setPair(2, nextHL);
           const unsigned adjustment = input
               ? static_cast<unsigned>(static_cast<std::uint8_t>(c + (decrement ? -1 : 1)))
-              : static_cast<unsigned>(nextL);
+              : static_cast<unsigned>(nextHL & 0x00FFu);
           const unsigned sum = static_cast<unsigned>(value) + adjustment;
           const bool halfCarry = sum > 0xFFu;
           const bool carry = halfCarry;
