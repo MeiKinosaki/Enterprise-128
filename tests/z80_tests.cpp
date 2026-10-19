@@ -359,6 +359,33 @@ static void restartAndBitMemoryUndocumentedFlags() {
          (Z80::FlagY | Z80::FlagX | Z80::FlagZ | Z80::FlagPV | Z80::FlagH));
 }
 
+static void blockIoPointerWrapsAcrossPage() {
+  Z80 cpu;
+  cpu.reset();
+  std::vector<std::uint16_t> ports;
+  cpu.setIoBus(
+      [&](std::uint16_t port) { ports.push_back(port); return static_cast<std::uint8_t>(0x5A); },
+      [&](std::uint16_t port, std::uint8_t) { ports.push_back(port); });
+  // INI at HL=20FFh must advance to 2100h; then IND must return to 20FFh.
+  const std::uint8_t program[] = {
+      0x01, 0x20, 0x02,       // LD BC,0220h
+      0x21, 0xFF, 0x20,       // LD HL,20FFh
+      0xED, 0xA2,             // INI
+      0x21, 0x00, 0x21,       // LD HL,2100h
+      0xED, 0xAA,             // IND
+      0x76};
+  cpu.load(0, program, sizeof(program));
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 16 && cpu.h == 0x21 && cpu.l == 0x00);
+  assert(cpu.memory[0x20FF] == 0x5A);
+  assert(cpu.step() == 10);
+  assert(cpu.step() == 16 && cpu.h == 0x20 && cpu.l == 0xFF);
+  assert(cpu.memory[0x2100] == 0x5A);
+  assert(ports.size() == 2 && ports[0] == 0x0220 && ports[1] == 0x0220);
+  assert(cpu.step() == 4 && cpu.halted);
+}
+
 static void branchAndUnsupportedOpcode() {
   Z80 cpu;
   cpu.reset();
@@ -390,6 +417,7 @@ int main() {
   immediatePortIoCallbacks();
   registerIndirectPortIo();
   blockPortIoInstructions();
+  blockIoPointerWrapsAcrossPage();
   restartAndBitMemoryUndocumentedFlags();
   aluRegisterOperationsAndFlags();
   std::cout << "Z80 regression tests passed\n";
